@@ -1,0 +1,5 @@
+{
+  "name": "Workflow Engine for Lead Nurturing",
+  "description": "A configurable workflow engine in React + TypeScript that executes business process workflows defined in JSON configuration files. The primary use case is lead nurturing campaigns with complex multi-channel outreach logic.",
+  "requestFramePermissions": []
+}
