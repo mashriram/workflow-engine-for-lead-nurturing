@@ -20,7 +20,7 @@ export function ExecutionControls({
   onStop,
 }: ExecutionControlsProps) {
   return (
-    <div className="flex gap-2 p-4 bg-card rounded-lg shadow-md border">
+    <div className="flex gap-2 p-4 bg-card rounded-lg shadow-md border dark:bg-black">
       {!isExecuting && !isPaused ? (
         <Button
           onClick={onStart}
