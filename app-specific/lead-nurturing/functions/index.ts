@@ -1,10 +1,10 @@
 
 
-import { FunctionRegistry } from '../../../workflow-engine/core/registry';
+import { FunctionRegistry } from '@/workflow-engine/core/registry';
 import { LeadData } from '../types';
-import { setFunctionRegistry } from '../../../workflow-engine/ui/hooks/useWorkflowEngine';
+import { setFunctionRegistry } from '@/workflow-engine/ui/hooks/useWorkflowEngine';
 import { leadNurturingApiDefs } from './apiDefinitions';
-import { FunctionRegistryEntry } from '../../../workflow-engine/core/types';
+import { FunctionRegistryEntry } from '@/workflow-engine/core/types';
 
 // Node functions
 import { fetchLeads } from './node-functions/fetchLeads';

@@ -5,8 +5,11 @@ import { StateViewer } from './src/workflow-engine/ui/components/state/StateView
 import { useWorkflowEngine } from './src/workflow-engine/ui/hooks/useWorkflowEngine';
 import { useWorkflowStore } from './src/workflow-engine/ui/store/workflowStore';
 import { WorkflowConfig } from './src/workflow-engine/core/types';
-import { LeadData } from './src/app-specific/lead-nurturing/types';
+import { LeadData } from './app-specific/lead-nurturing/types';
+import { setupLeadNurturingApplication } from './app-specific/lead-nurturing/functions';
 import { ModeToggle } from './src/components/theme-toggle';
+
+setupLeadNurturingApplication();
 
 type LoadingStatus = 'loading' | 'loaded' | 'error';
 

@@ -1,0 +1,285 @@
+
+{
+  "id": "lead-nurturing-v1",
+  "name": "Lead Nurturing Campaign",
+  "description": "Multi-channel outreach workflow with intelligent retry logic",
+  "version": "1.0.0",
+  "settings": {
+    "maxRetries": 3,
+    "timeout": 86400000,
+    "errorHandling": "continue"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "label": "Start",
+      "config": {},
+      "position": { "x": 250, "y": 0 }
+    },
+    {
+      "id": "fetch_leads",
+      "type": "action",
+      "label": "Fetch Leads",
+      "config": {
+        "functionRef": "fetchLeadsFromApi"
+      },
+      "position": { "x": 250, "y": 100 }
+    },
+    {
+      "id": "classify_lead",
+      "type": "action",
+      "label": "Classify Lead",
+      "config": {
+        "functionRef": "classifyLead",
+        "params": {
+          "criteria": ["revenue", "engagement", "fit_score"]
+        }
+      },
+      "position": { "x": 250, "y": 200 }
+    },
+    {
+      "id": "call_attempt_1",
+      "type": "action",
+      "label": "Call Lead (Attempt 1)",
+      "icon": "call",
+      "config": {
+        "action": "call",
+        "functionRef": "makeCall",
+        "params": {
+          "attemptNumber": 1
+        }
+      },
+      "position": { "x": 250, "y": 300 }
+    },
+    {
+      "id": "check_call_1",
+      "type": "decision",
+      "label": "Call Status Check",
+      "icon": "call",
+      "config": {
+        "functionRef": "checkCallStatus"
+      },
+      "position": { "x": 250, "y": 400 }
+    },
+    {
+      "id": "wait_2_hours",
+      "type": "wait",
+      "label": "Wait 2 Hours",
+      "config": {
+        "waitDuration": 7200000
+      },
+      "position": { "x": 100, "y": 500 }
+    },
+    {
+      "id": "call_attempt_2",
+      "type": "action",
+      "label": "Call Lead (Attempt 2)",
+      "icon": "call",
+      "config": {
+        "action": "call",
+        "functionRef": "makeCall",
+        "params": {
+          "attemptNumber": 2
+        }
+      },
+      "position": { "x": 100, "y": 600 }
+    },
+    {
+      "id": "check_call_2",
+      "type": "decision",
+      "label": "Call Status Check 2",
+      "icon": "call",
+      "config": {
+        "functionRef": "checkCallStatus"
+      },
+      "position": { "x": 100, "y": 700 }
+    },
+    {
+      "id": "send_email",
+      "type": "action",
+      "label": "Send Email",
+      "icon": "email",
+      "config": {
+        "functionRef": "sendEmailToLead"
+      },
+      "position": { "x": 400, "y": 700 }
+    },
+    {
+      "id": "wait_24_hours_email",
+      "type": "wait",
+      "label": "Wait 24 Seconds",
+      "config": {
+        "waitDuration": 24000
+      },
+      "position": { "x": 400, "y": 800 }
+    },
+    {
+      "id": "check_email_response",
+      "type": "decision",
+      "label": "Email Response Check",
+      "icon": "email",
+      "config": {
+        "functionRef": "checkEmailReply"
+      },
+      "position": { "x": 400, "y": 900 }
+    },
+    {
+      "id": "mark_contacted",
+      "type": "action",
+      "label": "Mark as Contacted",
+      "config": {
+        "functionRef": "markCompleted",
+        "params": {
+          "status": "contacted"
+        }
+      },
+      "position": { "x": 600, "y": 900 }
+    },
+    {
+      "id": "mark_unresponsive",
+      "type": "action",
+      "label": "Mark as Unresponsive",
+      "config": {
+        "functionRef": "markCompleted",
+        "params": {
+          "status": "unresponsive"
+        }
+      },
+      "position": { "x": 250, "y": 1200 }
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "label": "End",
+      "config": {},
+      "position": { "x": 400, "y": 1300 }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "start",
+      "target": "fetch_leads"
+    },
+    {
+      "id": "e2",
+      "source": "fetch_leads",
+      "target": "classify_lead"
+    },
+    {
+      "id": "e3",
+      "source": "classify_lead",
+      "target": "call_attempt_1"
+    },
+    {
+      "id": "e4",
+      "source": "call_attempt_1",
+      "target": "check_call_1"
+    },
+    {
+      "id": "e5",
+      "source": "check_call_1",
+      "target": "mark_contacted",
+      "label": "Answered",
+      "condition": {
+        "functionRef": "checkCallStatus",
+        "params": { "expectedStatus": "answered" }
+      }
+    },
+    {
+      "id": "e6",
+      "source": "check_call_1",
+      "target": "wait_2_hours",
+      "label": "Voicemail",
+      "condition": {
+        "functionRef": "checkCallStatus",
+        "params": { "expectedStatus": "voicemail" }
+      }
+    },
+    {
+      "id": "e7",
+      "source": "check_call_1",
+      "target": "send_email",
+      "label": "No Answer",
+      "condition": {
+        "functionRef": "checkCallStatus",
+        "params": { "expectedStatus": "no_answer" },
+        "fallbackTarget": "send_email"
+      }
+    },
+    {
+      "id": "e8",
+      "source": "wait_2_hours",
+      "target": "call_attempt_2"
+    },
+    {
+      "id": "e9",
+      "source": "call_attempt_2",
+      "target": "check_call_2"
+    },
+    {
+      "id": "e10",
+      "source": "check_call_2",
+      "target": "mark_contacted",
+      "label": "Answered",
+      "condition": {
+        "functionRef": "checkCallStatus",
+        "params": { "expectedStatus": "answered" }
+      }
+    },
+    {
+      "id": "e11",
+      "source": "check_call_2",
+      "target": "send_email",
+      "label": "Not Answered",
+      "condition": {
+        "functionRef": "checkCallStatus",
+        "fallbackTarget": "send_email"
+      }
+    },
+    {
+      "id": "e12",
+      "source": "send_email",
+      "target": "wait_24_hours_email"
+    },
+    {
+      "id": "e13",
+      "source": "wait_24_hours_email",
+      "target": "check_email_response"
+    },
+    {
+      "id": "e14",
+      "source": "check_email_response",
+      "target": "mark_contacted",
+      "label": "Replied",
+      "condition": {
+        "functionRef": "checkEmailReply"
+      }
+    },
+    {
+      "id": "e15",
+      "source": "check_email_response",
+      "target": "mark_unresponsive",
+      "label": "No Reply",
+      "condition": {
+        "functionRef": "checkEmailReply",
+        "fallbackTarget": "mark_unresponsive"
+      }
+    },
+    {
+      "id": "e16",
+      "source": "mark_contacted",
+      "target": "end"
+    },
+    {
+      "id": "e17",
+      "source": "mark_unresponsive",
+      "target": "end"
+    }
+  ],
+  "initialState": {
+    "campaignName": "Q4 Lead Nurturing",
+    "timezone": "America/New_York"
+  }
+}

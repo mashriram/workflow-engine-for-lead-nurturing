@@ -1,5 +1,5 @@
 
-import { FunctionRegistryEntry } from '../../../workflow-engine/core/types';
+import { FunctionRegistryEntry } from '@/workflow-engine/core/types';
 import { LeadData } from '../types';
 
 export const leadNurturingApiDefs: FunctionRegistryEntry<LeadData>[] = [

@@ -1,5 +1,5 @@
 
-import { EdgeConditionFunction } from '../../../../workflow-engine/core/types';
+import { EdgeConditionFunction } from '@/workflow-engine/core/types';
 import { LeadData } from '../../types';
 
 export const checkEmailResponse: EdgeConditionFunction<LeadData> = async (state, params) => {

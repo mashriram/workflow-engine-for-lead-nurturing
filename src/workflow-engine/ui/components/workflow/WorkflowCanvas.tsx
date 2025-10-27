@@ -37,6 +37,7 @@ export function WorkflowCanvas({ config, currentState }: WorkflowCanvasProps) {
           nodeType: node.type,
           status: nodeState?.status || 'pending',
           isActive: currentState?.currentNodeId === node.id,
+          icon: node.icon,
         },
       };
     });

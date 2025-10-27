@@ -23,6 +23,7 @@ export interface Node {
   config: NodeConfig;
   position?: Position;
   metadata?: Record<string, any>;
+  icon?: string;
 }
 
 export type NodeType =

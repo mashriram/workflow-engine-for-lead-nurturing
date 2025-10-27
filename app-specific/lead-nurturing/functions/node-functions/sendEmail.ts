@@ -1,20 +1,20 @@
 
-import { NodeFunction } from '../../../../workflow-engine/core/types';
+import { NodeFunction } from '@/workflow-engine/core/types';
 import { LeadData } from '../../types';
 
-export const sendSMS: NodeFunction<LeadData> = async (state, params) => {
+export const sendEmail: NodeFunction<LeadData> = async (state, params) => {
   const { template = 'default' } = params || {};
   
-  console.log(`Sending SMS (${template}) to ${state.contextData.phone}`);
+  console.log(`Sending email (${template}) to ${state.contextData.email}`);
   
-  await new Promise(resolve => setTimeout(resolve, 600));
+  await new Promise(resolve => setTimeout(resolve, 800));
   
   return {
     ...state,
     variables: {
       ...state.variables,
-      lastSMSSent: Date.now(),
-      lastSMSTemplate: template,
+      lastEmailSent: Date.now(),
+      lastEmailTemplate: template,
     },
     contextData: {
       ...state.contextData,
@@ -22,7 +22,7 @@ export const sendSMS: NodeFunction<LeadData> = async (state, params) => {
         ...(state.contextData.communicationHistory || []),
         {
           timestamp: Date.now(),
-          channel: 'sms' as const,
+          channel: 'email' as const,
           direction: 'outbound' as const,
           status: 'sent',
           details: { template },

@@ -20,29 +20,27 @@ interface CustomNodeData {
   nodeType: NodeType;
   status?: 'pending' | 'running' | 'completed' | 'failed' | 'skipped';
   isActive?: boolean;
+  icon?: string;
 }
 
-const nodeIcons: Record<NodeType, React.ReactElement> = {
+const nodeIcons: Record<string, React.ReactElement> = {
     start: <PlayCircle className="w-5 h-5" />,
     end: <StopCircle className="w-5 h-5" />,
     action: <CheckCircle className="w-5 h-5" />,
     wait: <Clock className="w-5 h-5" />,
     decision: <GitBranch className="w-5 h-5" />,
     parallel: <CheckCircle className="w-5 h-5" />, // Placeholder
-    merge: <CheckCircle className="w-5 h-5" /> // Placeholder
+    merge: <CheckCircle className="w-5 h-5" />, // Placeholder
+    email: <Mail className="w-5 h-5" />,
+    call: <Phone className="w-5 h-5" />,
+    sms: <MessageSquareText className="w-5 h-5" />,
 };
 
 
 export function CustomNode({ id, data }: NodeProps<CustomNodeData>) {
   const { selectedNodeId, setSelectedNodeId } = useWorkflowStore();
 
-  const getIcon = () => {
-     // Keep some app-specific icons for demonstration, but default to generic ones
-     if (data.label.toLowerCase().includes('email')) return <Mail className="w-5 h-5" />;
-     if (data.label.toLowerCase().includes('call')) return <Phone className="w-5 h-5" />;
-     if (data.label.toLowerCase().includes('sms')) return <MessageSquareText className="w-5 h-5" />;
-     return nodeIcons[data.nodeType] || <CheckCircle className="w-5 h-5" />;
-  };
+  const icon = data.icon && nodeIcons[data.icon] ? nodeIcons[data.icon] : nodeIcons[data.nodeType] || <CheckCircle className="w-5 h-5" />;
   
   const getStatusClasses = () => {
     switch (data.status) {
@@ -73,7 +71,7 @@ export function CustomNode({ id, data }: NodeProps<CustomNodeData>) {
       <Handle type="target" position={Position.Top} className="!bg-slate-400" />
       
       <CardHeader className="flex flex-row items-center gap-3 p-4">
-        <div className="flex-shrink-0">{getIcon()}</div>
+        <div className="flex-shrink-0">{icon}</div>
         <div>
           <CardTitle className="text-sm font-bold">{data.label}</CardTitle>
         </div>

@@ -1,5 +1,5 @@
 
-import { NodeFunction } from '../../../../workflow-engine/core/types';
+import { NodeFunction } from '@/workflow-engine/core/types';
 import { LeadData } from '../../types';
 
 export const makeCall: NodeFunction<LeadData> = async (state, params) => {
