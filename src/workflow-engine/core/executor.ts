@@ -1,6 +1,11 @@
-import { Node, WorkflowState, NodeExecutionState } from './types';
+
+import { Node, WorkflowState, NodeExecutionState, ApiOptions, FunctionDefinition, AuthOptions } from './types';
 import { FunctionRegistry } from './registry';
 import { SchedulerService } from './scheduler';
+
+function isApiOptions<T>(def: FunctionDefinition<T>): def is ApiOptions {
+  return typeof def === 'object' && 'url' in def;
+}
 
 export class NodeExecutor<T> {
   constructor(
@@ -103,16 +108,98 @@ export class NodeExecutor<T> {
   }
 
   private async executeAction(node: Node, state: WorkflowState<T>): Promise<WorkflowState<T>> {
-    const { functionRef, params } = node.config;
-    if (!functionRef) {
-      throw new Error(`Node ${node.id} of type 'action' is missing a functionRef.`);
+    const { functionRef, params, api } = node.config;
+
+    if (api) {
+      return this.executeApiAction(api, state, params);
     }
 
-    const func = this.registry.getNodeFunction(functionRef);
-    if (!func) {
+    if (!functionRef) {
+      throw new Error(`Node ${node.id} of type 'action' is missing a functionRef or api config.`);
+    }
+
+    const funcDef = this.registry.getFunction(functionRef);
+    if (!funcDef) {
       throw new Error(`Function "${functionRef}" not found in registry for node ${node.id}.`);
     }
 
-    return await func(state, params);
+    if (isApiOptions(funcDef)) {
+      return this.executeApiAction(funcDef, state, params);
+    }
+
+    if (typeof funcDef === 'function') {
+      // This is a temporary workaround to satisfy TypeScript
+      // We need to ensure that the function is of type NodeFunction<T>
+      const nodeFunction = funcDef as (state: WorkflowState<T>, params?: Record<string, any>) => Promise<WorkflowState<T>>;
+      return await nodeFunction(state, params);
+    }
+
+    throw new Error(`Unsupported function definition for "${functionRef}".`);
+  }
+
+  private async executeApiAction(api: ApiOptions, state: WorkflowState<T>, params?: Record<string, any>): Promise<WorkflowState<T>> {
+    const headers = new Headers(api.headers || {});
+    if (api.auth) {
+      this.applyAuth(headers, api.auth);
+    }
+
+    // Simple templating for URL
+    const url = this.replacePlaceholders(api.url, { ...state, params });
+
+    const body = api.body ? this.replacePlaceholders(api.body, { ...state, params }) : undefined;
+
+    const response = await fetch(url, {
+      method: api.method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}: ${await response.text()}`);
+    }
+
+    const responseData = await response.json();
+
+    return {
+      ...state,
+      contextData: {
+        ...state.contextData,
+        ...responseData,
+      },
+    };
+  }
+
+  private applyAuth(headers: Headers, auth: AuthOptions) {
+    switch (auth.type) {
+      case 'bearer':
+        if (auth.credentials.token) {
+          headers.set('Authorization', `Bearer ${this.replacePlaceholders(auth.credentials.token, {})}`);
+        }
+        break;
+      case 'apiKey':
+        if (auth.credentials.apiKey) {
+          headers.set('X-API-Key', this.replacePlaceholders(auth.credentials.apiKey, {}));
+        }
+        break;
+      // OAuth2 would be more complex and might involve a token refresh flow
+    }
+  }
+
+  private replacePlaceholders(template: any, context: any): any {
+    if (typeof template === 'string') {
+      return template.replace(/\${(.*?)}/g, (_, key) => {
+        const value = key.split('.').reduce((acc, k) => acc && acc[k], context);
+        return value !== undefined ? String(value) : '';
+      });
+    }
+    if (Array.isArray(template)) {
+      return template.map(item => this.replacePlaceholders(item, context));
+    }
+    if (typeof template === 'object' && template !== null) {
+      return Object.fromEntries(
+        Object.entries(template).map(([key, value]) => [key, this.replacePlaceholders(value, context)])
+      );
+    }
+    return template;
   }
 }

@@ -123,6 +123,25 @@ export interface Position {
   y: number;
 }
 
+
+export interface ApiOptions {
+  url: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  headers?: Record<string, string>;
+  body?: Record<string, any>;
+  auth?: AuthOptions;
+}
+
+export interface AuthOptions {
+  type: 'apiKey' | 'bearer' | 'oauth2';
+  credentials: {
+    token?: string;
+    apiKey?: string;
+    apiSecret?: string;
+    // More fields for OAuth2 can be added here
+  };
+}
+
 export type NodeFunction<T> = (
   state: WorkflowState<T>,
   params?: Record<string, any>
@@ -133,10 +152,22 @@ export type EdgeConditionFunction<T> = (
   params?: Record<string, any>
 ) => Promise<string | null>;
 
+export type FunctionDefinition<T> = NodeFunction<T> | EdgeConditionFunction<T> | ApiOptions;
+
 export interface FunctionRegistryEntry<T> {
   name: string;
   type: 'node' | 'edge';
   description: string;
-  function: NodeFunction<T> | EdgeConditionFunction<T>;
+  definition: FunctionDefinition<T>;
   schema?: Record<string, any>;
 }
+
+declare module './types' {
+  interface NodeConfig {
+    api?: ApiOptions;
+  }
+  interface EdgeCondition {
+    api?: ApiOptions;
+  }
+}
+
